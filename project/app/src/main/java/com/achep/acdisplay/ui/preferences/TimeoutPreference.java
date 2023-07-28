@@ -119,46 +119,61 @@ public class TimeoutPreference extends DialogPreference implements
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean byUser) {
-        int i = 0;
-        Group group = null;
-        for (; i < mGroups.length; i++)
-            if (mGroups[i].seekBar == seekBar) {
-                group = mGroups[i];
-                break;
-            }
-        assert group != null;
-
-        // Store labels to soft references array
-        // to prevent lots of new strings.
-        String label;
-        SoftReference<String> cached = mSoftStoredLabels[progress];
-        if (cached == null || cached.get() == null) {
-            label = String.format(mValueLabel, Float.toString(progress * MULTIPLIER / 1000f));
-            mSoftStoredLabels[progress] = new SoftReference<>(label);
-        } else {
-            label = cached.get();
+        int index = findGroupIndex(seekBar);
+        if (index < 0 || index >= mGroups.length) {
+            return;
         }
 
-        group.textView.setText(label);
+        Group group = mGroups[index];
+        updateLabelForSeekBar(group, progress);
 
         if (!byUser) {
             return;
         }
 
+        limitAndSyncProgress(index, progress);
+    }
+
+    private int findGroupIndex(SeekBar seekBar) {
+        for (int i = 0; i < mGroups.length; i++) {
+            if (mGroups[i].seekBar == seekBar) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void updateLabelForSeekBar(Group group, int progress) {
+        String label = getLabelForProgress(progress);
+        group.textView.setText(label);
+    }
+
+    private String getLabelForProgress(int progress) {
+        SoftReference<String> cached = mSoftStoredLabels[progress];
+        if (cached == null || cached.get() == null) {
+            String label = String.format(mValueLabel, Float.toString(progress * MULTIPLIER / 1000f));
+            mSoftStoredLabels[progress] = new SoftReference<>(label);
+            return label;
+        } else {
+            return cached.get();
+        }
+    }
+
+    private void limitAndSyncProgress(int currentIndex, int progress) {
         if (progress < mMin) {
-            seekBar.setProgress(mMin);
+            mGroups[currentIndex].seekBar.setProgress(mMin);
             return;
         }
 
-        for (int j = i - 1; j >= 0; j--) {
-            int old = mGroups[j].seekBar.getProgress();
-            int current = Math.max(mProgresses[j], progress);
+        for (int i = currentIndex - 1; i >= 0; i--) {
+            int old = mGroups[i].seekBar.getProgress();
+            int current = Math.max(mProgresses[i], progress);
             if (old != current) {
-                mGroups[j].seekBar.setProgress(current);
+                mGroups[i].seekBar.setProgress(current);
             }
         }
 
-        for (++i; i < mGroups.length; i++) {
+        for (int i = currentIndex + 1; i < mGroups.length; i++) {
             int old = mGroups[i].seekBar.getProgress();
             int current = Math.min(mProgresses[i], progress);
             if (old != current) {
