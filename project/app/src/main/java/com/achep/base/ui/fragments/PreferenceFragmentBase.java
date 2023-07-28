@@ -34,6 +34,7 @@ import com.achep.base.utils.PreferenceManagerUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import com.yourpackage.PreferenceTreeClickListener;
 
 /**
  * Shows a hierarchy of {@link android.preference.Preference} objects as
@@ -297,12 +298,10 @@ public abstract class PreferenceFragmentBase extends Fragment implements
     /**
      * {@inheritDoc}
      */
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
-                                         Preference preference) {
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
         return preference.getFragment() != null
-                && getActivity() instanceof PreferenceFragmentBase.OnPreferenceStartFragmentCallback
-                && ((PreferenceFragmentBase.OnPreferenceStartFragmentCallback) getActivity())
-                .onPreferenceStartFragment(this, preference);
+                && getActivity() instanceof OnPreferenceStartFragmentCallback
+                && ((OnPreferenceStartFragmentCallback) getActivity()).onPreferenceStartFragment(this, preference);
     }
 
     /**
