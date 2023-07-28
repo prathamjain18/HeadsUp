@@ -145,7 +145,14 @@ public abstract class SettingsActivity extends ActivityBase implements
 
     @Override
     public boolean onPreferenceStartFragment(PreferenceFragment caller, Preference p) {
-        startPreferencePanel(p.getFragment(), p.getExtras(), p.getTitleRes(), p.getTitle(), null, 0);
+        PreferencePanelData data = new PreferencePanelData();
+        data.setFragmentClass(p.getFragment());
+        data.setArguments(p.getExtras());
+        data.setTitleResId(p.getTitleRes());
+        data.setTitle(p.getTitle());
+        data.setResultTo(null);
+        data.setResultRequestCode(0);
+        startPreferencePanel(data);
         return true;
     }
 
@@ -383,8 +390,14 @@ public abstract class SettingsActivity extends ActivityBase implements
      * @param resultRequestCode If resultTo is non-null, this is the caller's
      *                          request code to be received with the result.
      */
-    public void startPreferencePanel(String fragmentClass, Bundle args, int titleRes,
-                                     CharSequence titleText, Fragment resultTo, int resultRequestCode) {
+    public void startPreferencePanel(PreferencePanelData data) {
+
+        String fragmentClass = data.getFragmentClass();
+        Bundle arguments = data.getArguments();
+        int titleResId = data.getTitleResId();
+        CharSequence title = data.getTitle();
+        Fragment resultTo = data.getResultTo();
+        int resultRequestCode = data.getResultRequestCode();
         String title = null;
         if (titleRes < 0) {
             if (titleText != null) {
